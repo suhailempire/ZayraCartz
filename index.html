@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZayraCartz | Wear Your Vibe.</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root { --ivory: #FAF8F5; --charcoal: #1C1C1C; --gold: #C5A880; --card: #F3EFEA; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background: var(--ivory); color: var(--charcoal); }
+    .announcement { background: var(--charcoal); color: #FFF; text-align: center; padding: 8px; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; border-bottom: 1px solid var(--gold); }
+    header { position: sticky; top: 0; background: rgba(250, 248, 245, 0.95); backdrop-filter: blur(5px); border-bottom: 1px solid rgba(197, 168, 128, 0.3); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 50; }
+    .brand { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 700; color: var(--charcoal); text-decoration: none; }
+    .brand span { color: var(--gold); }
+    .cart-btn { position: relative; background: none; border: none; cursor: pointer; }
+    .badge { position: absolute; top: -3px; right: -3px; background: var(--gold); color: #000; font-size: 10px; font-weight: bold; width: 17px; height: 17px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .hero { text-align: center; padding: 45px 20px; background: linear-gradient(180deg, #FAF8F5, #F4EFEB); }
+    .hero h1 { font-family: 'Cormorant Garamond', serif; font-size: 38px; margin: 8px 0; }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; max-width: 1100px; margin: 20px auto 40px; padding: 0 16px; }
+    .product-card { background: #FFF; border: 1px solid rgba(197, 168, 128, 0.3); border-radius: 4px; overflow: hidden; display: flex; flex-direction: column; }
+    .product-img { width: 100%; height: 290px; object-fit: cover; background: #eee; }
+    .details { padding: 14px; display: flex; flex-direction: column; flex-grow: 1; }
+    .size-btn { border: 1px solid #CCC; background: none; padding: 5px 8px; font-size: 11px; cursor: pointer; margin-right: 4px; margin-bottom: 10px; }
+    .size-btn.active { background: var(--charcoal); color: #FFF; }
+    .add-btn { background: var(--charcoal); color: #FFF; border: none; padding: 11px; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; margin-top: auto; width: 100%; }
+    .drawer { position: fixed; top: 0; right: -100%; width: 100%; max-width: 380px; height: 100%; background: var(--ivory); z-index: 100; box-shadow: -4px 0 15px rgba(0,0,0,0.2); transition: right 0.3s ease; display: flex; flex-direction: column; }
+    .drawer.open { right: 0; }
+    .drawer-items { flex-grow: 1; overflow-y: auto; padding: 15px; }
+  </style>
+</head>
+<body>
+
+  <div class="announcement">Free Express Shipping Across India | Wear Your Vibe.</div>
+  
+  <header>
+    <a href="#" class="brand">ZAYRA<span>CARTZ</span></a>
+    <button class="cart-btn" onclick="toggleCart()">
+      <svg width="24" height="24" fill="none" stroke="#1C1C1C" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4H6zM3 6h18M16 10a4 4 0 01-8 0"/></svg>
+      <div class="badge" id="cCount">0</div>
+    </button>
+  </header>
+
+  <div class="hero">
+    <p style="font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #9C7A44; font-weight: bold;">Wear Your Vibe</p>
+    <h1>The Minimal Streetwear Drop</h1>
+    <p style="font-size: 13px; color: #666;">Heavyweight comfort crafted for everyday aesthetic.</p>
+  </div>
+
+  <div class="product-grid" id="pGrid">
+    <p style="text-align: center; grid-column: 1/-1;">Loading drop...</p>
+  </div>
+
+  <!-- Cart Drawer -->
+  <div class="drawer" id="cartDrawer">
+    <div style="padding: 16px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between;">
+      <h3>Your Bag</h3>
+      <button onclick="toggleCart()" style="border:none; background:none; font-size:18px;">✕</button>
+    </div>
+    <div class="drawer-items" id="cItems"></div>
+    <div style="padding: 16px; background: #F3EFEA; border-top: 1px solid #ddd;">
+      <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:10px;">
+        <span>Total:</span><span id="cTotal">₹0</span>
+      </div>
+      <button class="add-btn" onclick="orderWhatsApp()">Confirm Order via WhatsApp</button>
+    </div>
+  </div>
+
+  <script>
+    let products = [];
+    let cart = [];
+    let selectedSizes = {};
+
+    async function fetchProducts() {
+      const res = await fetch(`products.json?t=${Date.now()}`);
+      products = await res.json();
+      products.forEach(p => { selectedSizes[p.id] = p.sizes[0]; });
+      render();
+    }
+
+    function render() {
+      document.getElementById('pGrid').innerHTML = products.map(p => `
+        <div class="product-card">
+          <img src="${p.image}" class="product-img">
+          <div class="details">
+            <h4 style="font-size:15px; margin-bottom:4px;">${p.title}</h4>
+            <div style="font-weight:bold; margin-bottom:10px;">₹${p.price} <s style="font-size:12px; color:#888;">₹${p.originalPrice}</s></div>
+            <div style="font-size:10px; color:#666; margin-bottom:4px;">SIZE:</div>
+            <div>
+              ${p.sizes.map(s => `<button class="size-btn ${selectedSizes[p.id] === s ? 'active' : ''}" onclick="pickSize(${p.id}, '${s}')">${s}</button>`).join('')}
+            </div>
+            <button class="add-btn" onclick="add(${p.id})">Add to Bag</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function pickSize(id, s) { selectedSizes[id] = s; render(); }
+    function add(id) {
+      const p = products.find(x => x.id === id);
+      cart.push({ ...p, size: selectedSizes[id], uid: Date.now() + Math.random() });
+      updateCart();
+      toggleCart(true);
+    }
+
+    function toggleCart(open = false) {
+      const d = document.getElementById('cartDrawer');
+      if(open) d.classList.add('open');
+      else d.classList.toggle('open');
+    }
+
+    function updateCart() {
+      document.getElementById('cCount').innerText = cart.length;
+      let total = 0;
+      document.getElementById('cItems').innerHTML = cart.map(i => {
+        total += i.price;
+        return `<div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:8px;">
+          <div><div style="font-weight:bold; font-size:13px;">${i.title}</div><div style="font-size:11px; color:#666;">Size: ${i.size} | ₹${i.price}</div></div>
+          <button onclick="remove(${i.uid})" style="border:none; color:red; background:none;">Remove</button>
+        </div>`;
+      }).join('');
+      document.getElementById('cTotal').innerText = `₹${total}`;
+    }
+
+    function remove(uid) { cart = cart.filter(x => x.uid !== uid); updateCart(); }
+
+    function orderWhatsApp() {
+      if(cart.length === 0) return alert("Cart is empty!");
+      let total = 0;
+      let text = "NEW ORDER - ZAYRACARTZ%0A----------------------";
+      cart.forEach((c, idx) => {
+        total += c.price;
+        text += `%0A${idx+1}. ${c.title} (Size: ${c.size}) - ₹${c.price}`;
+      });
+      text += `%0A----------------------%0ATotal: ₹${total}`;
+      window.open(`https://wa.me/?text=${text}`, '_blank');
+    }
+
+    fetchProducts();
+  </script>
+</body>
+</html>
