@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "title": "Signature Oversized Tee - Charcoal",
+    "price": 899,
+    "originalPrice": 1499,
+    "image": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600&auto=format&fit=crop&q=80",
+    "sizes": ["M", "L", "XL"]
+  },
+  {
+    "id": 2,
+    "title": "Heavyweight Vintage Tee - Sand",
+    "price": 999,
+    "originalPrice": 1699,
+    "image": "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=600&auto=format&fit=crop&q=80",
+    "sizes": ["S", "M", "L", "XL"]
+  }
+]
